@@ -1,0 +1,36 @@
+---
+title: "Liner Model Selection and Regularization"
+output: pdf_document
+---
+
+## Best Subset Selection
+
+```{r}
+library(ISLR)
+names(Hitters)
+summary(Hitters)
+dim(Hitters)
+sum(is.na(Hitters$Salary))
+Hitters=na.omit(Hitters)
+
+install.packages("leaps")
+library(leaps)
+attach(Hitters)
+regfit.full=regsubsets(Salary ~ ., data=Hitters,nvmax = 19)
+reg.fit.summary=summary(regfit.full)
+names(reg.fit.summary)
+reg.fit.summary$rsq
+
+par(mfrow=c(2,2))
+plot(reg.fit.summary$rss, xlab="Number of variables", ylab="RSS", type="b")
+```
+```{r}
+plot(reg.fit.summary$adjr2, xlab = "Number of variables", ylab = "Adjusted r2", type="b")
+points(11, reg.fit.summary$adjr2[11], col="red", cex=2, pch=20)
+which.max(reg.fit.summary$adjr2)
+
+
+plot.of.cp=plot(reg.fit.summary$cp, xlab = "Number of Variables", ylab = "Cp", type="l")
+which.min(reg.fit.summary$cp)
+points(10,reg.fit.summary$cp[10],col="red",cex=2,pch=20)
+```
