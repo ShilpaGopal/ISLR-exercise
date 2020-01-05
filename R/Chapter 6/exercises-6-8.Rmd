@@ -1,0 +1,171 @@
+---
+title: "Chapter 6 exercixes 6 to 8"
+output: pdf_document
+---
+# 6 a
+```{r }
+y=2
+lambda=2
+betas = seq(-10, 10, 0.1)
+func=(y-betas)^2+lambda*betas^2;
+plot(betas, func, pch=20, xlab = "Beta", ylab = "Ridge optimization")
+est.beta=y/(1+lambda);
+est.func = (y - est.beta)^2 + lambda * est.beta^2;
+points(est.beta, est.func, col = "red", pch = 4, lwd = 5, cex = est.beta)
+```
+# 6 b
+```{r }
+y=2;
+lambda=2;
+betas=seq(-3,3,0.01);
+func = (y - betas)^2 + lambda * abs(betas);
+plot(betas, func, pch = 20, xlab = "beta", ylab = "Lasso optimization")
+est.beta = y - lambda/2
+est.func = (y - est.beta)^2 + lambda * abs(est.beta)
+points(est.beta, est.func, col = "red", pch = 4, lwd = 5, cex = est.beta)
+```
+# 8 a and b
+
+```{r}
+set.seed(1)
+X=rnorm(100)
+eps=rnorm(100)
+
+beta0 = 3
+beta1 = 2
+beta2 = -3
+beta3 = 0.3
+Y = beta0 + beta1 * X + beta2 * X^2 + beta3 * X^3 + eps
+```
+
+# 8 c
+
+```{r}
+library(leaps)
+data.full=data.frame(y=Y, x=X)
+reg.fit=regsubsets(Y ~ poly(x, 10, raw=T), data= data.full, nvmax = 10)
+reg.summary=summary(reg.fit)
+which.min(reg.summary$cp)
+```
+```{r}
+which.min(reg.summary$bic)
+```
+```{r}
+which.max(reg.summary$adjr2)
+```
+```{r}
+plot(reg.summary$cp, xlab="Number of varibales", ylab="cp", pch=20, type="l")
+points(3, reg.summary$cp[3], pch=4, col="red", lwd=4)
+```
+```{r}
+plot(reg.summary$bic, xlab = "Subset Size", ylab = "BIC", pch = 20, type = "l")
+points(3, reg.summary$bic[3], pch = 4, col = "red", lwd = 7)
+```
+```{r}
+plot(reg.summary$adjr2, xlab = "Subset Size", ylab = "Adjusted R2", pch = 20, 
+    type = "l")
+points(3, reg.summary$adjr2[3], pch = 4, col = "red", lwd = 7)
+```
+```{r}
+coefficients(reg.fit, id = 3)
+```
+# 8 d
+
+```{R}
+mod.fwd=regsubsets(y~poly(x,10,raw=T), data=data.full, nvmax = 10, method = "forward")
+mod.bwd=regsubsets(y~poly(x,10,raw=T), data=data.full, nvmax = 10, method = "backward")
+
+fwd.summary = summary(mod.fwd)
+bwd.summary = summary(mod.bwd)
+
+which.min(fwd.summary$cp)
+which.min(bwd.summary$cp)
+which.min(fwd.summary$bic)
+which.min(bwd.summary$bic)
+which.max(fwd.summary$adjr2)
+which.max(bwd.summary$adjr2)
+```
+
+```{r}
+par(mfrow=c(3,2))
+
+plot(fwd.summary$cp, xlab = "Subset Size", ylab = "Forward Cp", pch = 20, type = "l")
+points(3, fwd.summary$cp[3], pch = 4, col = "red", lwd = 7)
+plot(bwd.summary$cp, xlab = "Subset Size", ylab = "Backward Cp", pch = 20, type = "l")
+points(3, bwd.summary$cp[3], pch = 4, col = "red", lwd = 7)
+plot(fwd.summary$bic, xlab = "Subset Size", ylab = "Forward BIC", pch = 20, 
+    type = "l")
+points(3, fwd.summary$bic[3], pch = 4, col = "red", lwd = 7)
+plot(bwd.summary$bic, xlab = "Subset Size", ylab = "Backward BIC", pch = 20, 
+    type = "l")
+points(3, bwd.summary$bic[3], pch = 4, col = "red", lwd = 7)
+plot(fwd.summary$adjr2, xlab = "Subset Size", ylab = "Forward Adjusted R2", 
+    pch = 20, type = "l")
+points(3, fwd.summary$adjr2[3], pch = 4, col = "red", lwd = 7)
+plot(bwd.summary$adjr2, xlab = "Subset Size", ylab = "Backward Adjusted R2", 
+    pch = 20, type = "l")
+points(4, bwd.summary$adjr2[4], pch = 4, col = "red", lwd = 7)
+
+```
+
+```{r}
+coefficients(mod.fwd, id = 3)
+coefficients(mod.fwd, id = 4)
+```
+
+```{r}
+coefficients(mod.bwd, id = 3)
+```
+
+# 8 e
+
+```{r}
+library(glmnet)
+xmat=model.matrix(y~poly(x, 10, raw=T), data=data.full)[,-1]
+mod.lasso = cv.glmnet(xmat, Y, alpha = 1)
+bestlam=mod.lasso$lambda.min
+bestlam
+```
+
+```{r}
+plot(mod.lasso)
+```
+
+```{r}
+best.model = glmnet(xmat, Y, alpha = 1)
+predict(best.model, s = bestlam, type = "coefficients")
+```
+# 8 f
+```{r}
+beta7 = 7
+Y = beta0 + beta7 * X^7 + eps
+data.full = data.frame(y = Y, x = X)
+mod.full = regsubsets(y ~ poly(x, 10, raw = T), data = data.full, nvmax = 10)
+mod.summary = summary(mod.full)
+which.min(mod.summary$cp)
+coefficients(mod.full, id = 1)
+which.min(mod.summary$bic)
+```
+
+```{r}
+xmat = model.matrix(y ~ poly(x, 10, raw = T), data = data.full)[, -1]
+mod.lasso=cv.glmnet(xmat, Y, alpha=1)
+best.lambda = mod.lasso$lambda.min
+best.lambda
+best.model = glmnet(xmat, Y, alpha = 1)
+predict(best.model, s = best.lambda, type = "coefficients")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
