@@ -1,0 +1,21 @@
+library(ISLR)
+attach(Wage)
+set.seed(1)
+summary(Wage$jobclass)
+summary(Wage$maritl)
+par(mfrow=c(1,2))
+plot(Wage$jobclass, Wage$wage)
+plot(Wage$maritl, Wage$wage)
+
+lm.fit=lm(wage~maritl, data=Wage)
+summary(lm.fit)
+deviance(lm.fit)
+lm.fit.j=lm(wage~jobclass, data=Wage)
+deviance(lm.fit.j)
+fit = lm(wage ~ maritl + jobclass, data = Wage)
+deviance(fit)
+
+
+library(gam)
+glm.fit=glm(wage~ maritl+jobclass+s(age,4), data = Wage)
+deviance(glm.fit)
